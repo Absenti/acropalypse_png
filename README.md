@@ -1,5 +1,7 @@
 # Acropalypse PNG 
 
+Adapted from the PoC of David Buchanan : [GitHub link](https://gist.github.com/DavidBuchanan314/93de9d07f7fab494bcdf17c2bd6cef02)
+
 This tool is designed to restore hidden data in PNG files using acropalypse vulnerability. It can detect and display the trailing bytes length, delete hidden data, or restore hidden data and create a new PNG image.
 
 ## Dependencies
@@ -42,4 +44,4 @@ Where <type_exploit> can be either pixel or windows.
 
 
 
-Adapted from the PoC of David Buchanan : [GitHub link](https://gist.github.com/DavidBuchanan314/93de9d07f7fab494bcdf17c2bd6cef02)
+
