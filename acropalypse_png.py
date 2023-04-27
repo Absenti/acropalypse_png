@@ -152,35 +152,6 @@ def bitshifted(bitstream):
     return byte_offsets
 
 # Function to find viable parses
-def parses(idat, byte_offsets):
-    print("Scanning for viable parses...")
-
-    prefix = b"\x00" + (0x8000).to_bytes(2, "little") + (0x8000 ^ 0xffff).to_bytes(2, "little") + b"X" * 0x8000
-
-    for i in range(len(idat)):
-        truncated = byte_offsets[i % 8][i // 8:]
-
-        if truncated[0] & 7 != 0b100:
-            continue
-
-        d = zlib.decompressobj(wbits=-15)
-        try:
-            decompressed = d.decompress(prefix + truncated) + d.flush(zlib.Z_FINISH)
-            decompressed = decompressed[0x8000:]
-
-            if d.eof and d.unused_data in [b"", b"\x00"]:
-                print(f"Found viable parse at bit offset {i}!")
-                break
-            else:
-                print(f"Parsed until the end of a zlib stream, but there was still {len(d.unused_data)} byte of remaining data. Skipping.")
-        except zlib.error as e:
-            pass
-    else:
-        print("Failed to find viable parse :(")
-        sys.exit()
-
-    print("decompressed length = {}".format(len(decompressed)))
-    return decompressed
 
 def parsesv2(idat, byte_offsets):
     print("Scanning for viable parses...")
@@ -252,7 +223,10 @@ def find_final_width(height, width, type_exploit, decompressed):
     width_increment = 1
 
     while True:
-        
+        if valid_width > 10000 : 
+            printf("It is impossible to retrieve the image. For more attempts, please change the limit regarding the width in the function find_final_width")
+            exit()
+            
         try:
             generate_png(height, valid_width, type_exploit, decompressed).load()
             break
