@@ -38,3 +38,8 @@ python restore_png.py restore <type_exploit> <cropped_png> <reconstructed_png>
 ```
 
 Where <type_exploit> can be either pixel or windows.
+
+
+
+
+Adapted from the PoC of David Buchanan : [GitHub link](https://gist.github.com/DavidBuchanan314/93de9d07f7fab494bcdf17c2bd6cef02)
