@@ -4,6 +4,8 @@ Adapted from the PoC of David Buchanan : [GitHub link](https://gist.github.com/D
 
 This tool is designed to restore hidden data in PNG files using acropalypse vulnerability. It can detect and display the trailing bytes length, delete hidden data, or restore hidden data and create a new PNG image.
 
+This uses bruteforce to restore the image, without requiring the original dimension
+
 ## Dependencies
 
 - Python 3.6 or higher
