@@ -7,6 +7,7 @@ import numpy as np
 import argparse
 import struct
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description="A tool for restoring hidden data in PNG files.")
     subparsers = parser.add_subparsers(dest='command')
@@ -24,7 +25,7 @@ def parse_args():
     restore_parser.add_argument('reconstructed', help="The output reconstructed PNG file.")
 
     args = parser.parse_args()
-    return args
+    return args, parser
     
     
     
@@ -152,6 +153,35 @@ def bitshifted(bitstream):
     return byte_offsets
 
 # Function to find viable parses
+def parses(idat, byte_offsets):
+    print("Scanning for viable parses...")
+
+    prefix = b"\x00" + (0x8000).to_bytes(2, "little") + (0x8000 ^ 0xffff).to_bytes(2, "little") + b"X" * 0x8000
+
+    for i in range(len(idat)):
+        truncated = byte_offsets[i % 8][i // 8:]
+
+        if truncated[0] & 7 != 0b100:
+            continue
+
+        d = zlib.decompressobj(wbits=-15)
+        try:
+            decompressed = d.decompress(prefix + truncated) + d.flush(zlib.Z_FINISH)
+            decompressed = decompressed[0x8000:]
+
+            if d.eof and d.unused_data in [b"", b"\x00"]:
+                print(f"Found viable parse at bit offset {i}!")
+                break
+            else:
+                print(f"Parsed until the end of a zlib stream, but there was still {len(d.unused_data)} byte of remaining data. Skipping.")
+        except zlib.error as e:
+            pass
+    else:
+        print("Failed to find viable parse :(")
+        sys.exit()
+
+    print("decompressed length = {}".format(len(decompressed)))
+    return decompressed
 
 def parsesv2(idat, byte_offsets):
     print("Scanning for viable parses...")
@@ -223,16 +253,13 @@ def find_final_width(height, width, type_exploit, decompressed):
     width_increment = 1
 
     while True:
-        if valid_width > 10000 : 
-            printf("It is impossible to retrieve the image. For more attempts, please change the limit regarding the width in the function find_final_width")
-            exit()
-            
+        
         try:
             generate_png(height, valid_width, type_exploit, decompressed).load()
             break
         except:
             valid_width += width_increment
-            #if valid_width %10 == 0 : print("Width > {} pixels".format(valid_width))
+            if valid_width %10 == 0 : print("Width > {} pixels".format(valid_width))
 
     for i in range(valid_width, valid_width + 5):
         try:
@@ -251,10 +278,10 @@ def find_final_height(wid,type_exploit, decompressed) :
     if type_exploit == "pixel" : return ceil(len(decompressed) / (wid*3 +1))
 # Main function
 if __name__ == '__main__':
-    args = parse_args()
+    args, parser = parse_args()
     
     if len(sys.argv) < 2:
-        print_help()
+        parser.print_help()
         sys.exit()
 
     option = sys.argv[1]
@@ -266,7 +293,7 @@ if __name__ == '__main__':
 
     elif option == "delete":
         if len(sys.argv) != 4:
-            print_help()
+            parser.print_help()
             sys.exit()
         else:
             remove_data_after_iend(sys.argv[2], sys.argv[3])
@@ -275,7 +302,7 @@ if __name__ == '__main__':
 
     elif option == "restore":
         if len(sys.argv) != 5 or sys.argv[2] not in ["pixel", "windows"]:
-            print_help()
+            parser.print_help()
             sys.exit()
         else:
             type_exploit = sys.argv[2]
@@ -297,6 +324,6 @@ if __name__ == '__main__':
             sys.exit()
 
     else:
-        print_help()
+        parser.print_help()
         sys.exit()
 
